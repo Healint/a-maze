@@ -25,12 +25,19 @@ class MazeGenerator:
         self._init_entrance()
         self._init_exit()
 
+        viz_maze(self.maze)
+        self._init_boarder()
+        self._init_branches()
+        self._init_traps()
+        self._init_treasures()
+        self._init_wall()
+
         # visualise maze
         viz_maze(self.maze)
 
-        # validation checks
-        self._validate_maze()
         logger.warning("Maze generated. ")
+
+    # -- init methods --
 
     def _init_empty_maze(self) -> List[List[BaseTile]]:
         """ initialised a square maze with BaseTiles """
@@ -44,18 +51,38 @@ class MazeGenerator:
     def _init_entrance(self) -> None:
         """ initialise the entrace at any point on the boarder """
         remains = self._get_remaining_border_tiles()
-        x, y = random.choice(remains)
-        self.entrance = Entrance(self.dimension, x=x, y=y)
-        self.maze[x][y] = self.entrance
+        chosen_tile = random.choice(remains)
+        self.entrance = Entrance(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
+        self._replace_title(chosen_tile, self.entrance)
 
     def _init_exit(self):
         remains = self._get_remaining_border_tiles(excluding_neighbors=[self.entrance])
-        x, y = random.choice(remains)
-        self.exit = Exit(dimension=self.dimension, x=x, y=y)
-        self.maze[x][y] = self.exit
+        chosen_tile = random.choice(remains)
+        self.exit = Exit(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
+        self._replace_title(chosen_tile, self.exit)
 
-    def _validate_maze(self):
+    def _init_branches(self):
         pass
+
+    def _init_traps(self):
+        pass
+
+    def _init_treasures(self):
+        pass
+
+    def _init_boarder(self):
+        for base_tile in self._get_remaining_border_tiles():
+            self._replace_title(base_tile, BoarderTile(base_tile.x, base_tile.y, self.dimension))
+
+    def _init_wall(self):
+        """
+        generate walls after the completion of path
+        including the boarders
+        :return:
+        """
+        pass
+
+    # -- helpers --
 
     def _get_remaining_tiles(self):
         """
@@ -84,22 +111,40 @@ class MazeGenerator:
                 if 0 not in (i, j) and self.dimension - 1 not in (i, j):
                     continue
 
-                result.append((i, j))
+                result.append(BaseTile(i, j))
 
         # excluding neighbors if required
         if excluding_neighbors is not None:
             final_result = []
             for tile in result:
                 for exclusion in excluding_neighbors:
-                    if not is_neighbor(BaseTile(tile[0], tile[1]), exclusion):
+                    if not is_neighbor(tile, exclusion):
                         final_result.append(tile)
 
             result = final_result
 
         return result
 
+    def _get_walkable_neightbors(self, current_tile: Any) -> List:
+        # I am doing this stupid logic again ...
+        all_dir = [
+            self.maze[current_tile.x + 1][current_tile.y],
+            self.maze[current_tile.x - 1][current_tile.y],
+            self.maze[current_tile.x][current_tile.y - 1],
+            self.maze[current_tile.x][current_tile.y + 1]
+        ]
+        result = []
+        for tile in all_dir:
+            if isinstance(tile, BaseTile):
+                result.append(tile)
 
-def random_walk(start, end, length):
+        return result
+
+    def _replace_title(self, this: Any, other: Any):
+        self.maze[this.x][this.y] = other
+
+
+def random_walk(start, walk_before_turn: int):
     """
     Random Walk from a starting point, on all BaseTiles
     """
@@ -113,14 +158,15 @@ def generate_correct_path(start, end):
     pass
 
 
-def random_walk
-
-
 def generate_branches_from_coordinates(x, y, length: int):
     pass
 
 
-def is_reachable(x, y):
+def is_reachable(this: Any, other: Any, maze: List[List[Any]]) -> None:
+    """
+    Test in a give maze, the path is reachable from one place to another
+    Note this ignoring any additional effect such as traps
+    """
     pass
 
 
