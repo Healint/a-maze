@@ -8,6 +8,9 @@ from src.helpers import viz_maze
 
 logger = logging.getLogger(__name__)
 
+AVAILABLE_DIRECTION = ['x', 'y']
+AVAILABLE_MOVE = [1, -1]
+
 
 class MazeGenerator:
 
@@ -25,7 +28,12 @@ class MazeGenerator:
         self._init_entrance()
         self._init_exit()
         self._init_boarder()
-
+        self._random_walk_painting(
+            start=self.entrance,
+            end=self.exit,
+            paint=SolutionPath,
+            walk_before_turn=2
+        )
         viz_maze(self.maze)
 
         self._init_branches()
@@ -60,6 +68,9 @@ class MazeGenerator:
         chosen_tile = random.choice(remains)
         self.exit = Exit(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
         self._replace_tile(chosen_tile, self.exit)
+
+    def _init_correct(self):
+        pass
 
     def _init_branches(self):
         pass
@@ -127,41 +138,95 @@ class MazeGenerator:
 
         return result
 
-    def _get_walkable_neighbors(self, current_tile: Any) -> List:
+    def _get_walkable_neighbors(self, current_tile: Any, previous_step: Any = None) -> List:
         # I am doing this stupid logic again ...
-        all_dir = [
-            self.maze[current_tile.x + 1][current_tile.y],
-            self.maze[current_tile.x - 1][current_tile.y],
-            self.maze[current_tile.x][current_tile.y - 1],
-            self.maze[current_tile.x][current_tile.y + 1]
-        ]
         result = []
-        for tile in all_dir:
-            if isinstance(tile, BaseTile):
-                result.append(tile)
+
+        try:
+            right = self.maze[current_tile.x + 1][current_tile.y]
+            result.append(right)
+        except IndexError:
+            pass
+
+        try:
+            left = self.maze[current_tile.x - 1][current_tile.y]
+            result.append(left)
+        except IndexError:
+            pass
+
+        try:
+            down = self.maze[current_tile.x][current_tile.y - 1]
+            result.append(down)
+        except IndexError:
+            pass
+
+        try:
+            up = self.maze[current_tile.x][current_tile.y + 1]
+            result.append(up)
+        except IndexError:
+            pass
+
+        # check boarder tile
+        result = [item for item in result if not _check_tile_type(item, BoarderTile)]
 
         return result
 
     def _replace_tile(self, this: Any, other: Any):
         self.maze[this.x][this.y] = other
 
+    # def _random_walk_a_tile(self, current_tile: Any, previous_tile: Any = None) -> Any:
+    #     """
+    #     given an existing current tile, walk to another one
+    #     allowed a previous step to be excluded so no turning back
+    #     """
+    #     # compute forbidden step
+    #     if previous_tile:
+    #         x_move = current_tile.x - previous_tile.x
+    #         y_move = current_tile.y - previous_tile.y
+    #
+    #         if x_move != 0:
+    #             forbidden_direction = 'x'
+    #             forbidden_step = - x_move  # forbid going back by assign negative sign
+    #         else:
+    #             forbidden_direction = 'y'
+    #             forbidden_step = - y_move
+    #
+    #     direction = random.choice(AVAILABLE_DIRECTION)
+    #     step = random.choice()
+    #
+    #     if direction == 'x':
+    #         next_tile = self.maze[current_tile.x]
 
-def random_walk(start, walk_before_turn: int):
-    """
-    Random Walk from a starting point, on all BaseTiles
-    """
-    pass
+    def _random_walk_painting(self, start, paint: Any, end=None, walk_before_turn: int = 2):
+        """
+        Recursively paint the path with a type of tile
 
+        Stop condition
 
-def generate_correct_path(start, end):
-    """
-    generate correct path between tiles, mark path as CorrectPathTile
-    """
-    pass
+        1. reach end (if on, will avoid boarder)
+        2. reach boarder
 
+        Random Walk from a starting point, on all connected BaseTiles
+        """
+        avoiding_wall = False
+        if end is not None:
+            logger.warning("End tile provided, destined to reach the end. ")
+            avoiding_wall = True
 
-def generate_branches_from_coordinates(x, y, length: int):
-    pass
+        current_tile = start
+        turn_counter = 0
+        while True:
+
+            if current_tile is end:
+                logger.warning("Random Walk reach destination. ")
+                break
+
+            # random
+
+            next_steps = self._get_walkable_neighbors(current_tile)
+
+            print(next_steps)
+            break
 
 
 def is_reachable(this: Any, other: Any, maze: List[List[Any]]) -> None:

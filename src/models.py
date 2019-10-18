@@ -12,10 +12,10 @@ class BaseTile:
         self.y = y
 
     def __repr__(self):
-        return f"{self.__class__.__name__}"
+        return f"{self.__class__.__name__} - {self.x},{self.y}"
 
     def __str__(self):
-        return f"{self.__class__.__name__[:5]}"
+        return f"{self.__class__.__name__} - {self.x},{self.y}"
 
     def _validate_coordinates(self):
         """ indepedent validation of coordinates """
@@ -42,5 +42,38 @@ class Exit(BoarderTile):
     pass
 
 
-class CorrectPathTile(BaseTile):
+class Path(BaseTile):
     pass
+
+
+class SolutionPath(BaseTile):
+    pass
+
+
+class Wall(BaseTile):
+    pass
+
+
+class Trap(BaseTile):
+    pass
+
+
+class StaticSpike(Trap):
+    pass
+
+
+class DynamicSpike(Trap):
+    pass
+
+
+class FireBridge(Trap):
+    pass
+
+
+class Treasure(BaseTile):
+    pass
+
+
+class Armor(Treasure):
+    pass
+
