@@ -2,20 +2,23 @@
 A project for the engineering challenge in Healint.
 
 
-# Additional Mechanics
+# Iteration designs
 
 v1:
 
-Normal path maze
+- Support the basic mechanics of a maze.
+- Support validation checking (Maze is solvable)
 
 v2:
 
-Keys - Doors pairs
-Death Traps
+- Support the generation of Keys - Doors pairs
+- Support Death Traps and blockers
 
 v3:
 
-Treasure for shovel
+- Support the generation of Treasures guarded with keys
+    * Shovel - allows to destroy walls
+    * Armor - allows to ignore death trap
 
 
 

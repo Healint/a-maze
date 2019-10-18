@@ -1,27 +1,37 @@
 import logging
-import numpy as np
 
 from typing import List, Any
+
+from src.models import *
+from src.helpers import viz_maze
 
 logger = logging.getLogger(__name__)
 
 
+# entrypoint
 def initialise_maze():
     logger.warning("Initialise a maze ...")
 
-    maze = init_empty_maze(3)
-
+    maze = init_empty_maze(5)
     viz_maze(maze)
 
     logger.warning("Maze generated. ")
 
 
-def init_empty_maze(dimension: int) -> List[List[Any]]:
-    return [[0 for i in range(dimension)] for j in range(dimension)]
+# init methods
+def init_empty_maze(dimension: int) -> List[List[BaseTile]]:
+    """ initialised a square maze """
+    return [[BaseTile(i, j) for i in range(dimension)] for j in range(dimension)]
 
 
-def viz_maze(maze: List[List[Any]]) -> None:
-    print(np.matrix(maze))
+def init_entrance(maze: List[List[BaseTile]]) -> None:
+    """ initialise the entrace at any point on the boarder """
+    size = len(maze)
+
+
+
+def init_exit():
+    pass
 
 
 def generate_correct_path():
