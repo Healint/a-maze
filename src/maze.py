@@ -29,7 +29,7 @@ class MazeGenerator:
         viz_maze(self.maze)
 
         # validation checks
-        self.solve_maze()
+        self._validate_maze()
         logger.warning("Maze generated. ")
 
     def _init_empty_maze(self) -> List[List[BaseTile]]:
@@ -54,7 +54,7 @@ class MazeGenerator:
         self.exit = Exit(dimension=self.dimension, x=x, y=y)
         self.maze[x][y] = self.exit
 
-    def solve_maze(self):
+    def _validate_maze(self):
         pass
 
     def _get_remaining_tiles(self):
@@ -99,8 +99,21 @@ class MazeGenerator:
         return result
 
 
-def generate_correct_path():
+def random_walk(start, end, length):
+    """
+    Random Walk from a starting point, on all BaseTiles
+    """
     pass
+
+
+def generate_correct_path(start, end):
+    """
+    generate correct path between tiles, mark path as CorrectPathTile
+    """
+    pass
+
+
+def random_walk
 
 
 def generate_branches_from_coordinates(x, y, length: int):

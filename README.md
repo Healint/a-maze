@@ -12,13 +12,17 @@ v1:
 v2:
 
 - Support the generation of Keys - Doors pairs
-- Support Death Traps and blockers
+- Support the generation of Treasures guarded with keys
+    * Shovel - allows to destroy walls a few times
 
 v3:
 
-- Support the generation of Treasures guarded with keys
-    * Shovel - allows to destroy walls
-    * Armor - allows to ignore death trap
-
-
+- Support Three different types of traps
+    * static spike trap
+    * dynamic spike trap
+    * dynamic fire bridge (instance death)
+    
+- Support an additional treasure
+    * armor - able to block static and dynamic spike traps
+    
 
