@@ -23,7 +23,7 @@ class MazeGenerator:
         # initialise basic maze
         self.maze = self._init_empty_maze()
         self._init_entrance()
-        # self._init_exit()
+        self._init_exit()
 
         # visualise maze
         viz_maze(self.maze)
@@ -44,14 +44,14 @@ class MazeGenerator:
     def _init_entrance(self) -> None:
         """ initialise the entrace at any point on the boarder """
         remains = self._get_remaining_border_tiles()
-        entrance_x, entrance_y = random.choice(remains)
-        self.entrance = BoarderTile(x=entrance_x, y=entrance_y, dimension=self.dimension)
-        self.maze[entrance_x][entrance_y] = self.entrance
+        x, y = random.choice(remains)
+        self.entrance = Entrance(self.dimension, x=x, y=y)
+        self.maze[x][y] = self.entrance
 
     def _init_exit(self):
         remains = self._get_remaining_border_tiles(excluding_neighbors=[self.entrance])
         x, y = random.choice(remains)
-        self.exit = BoarderTile(x=x, y=y, dimension=self.dimension)
+        self.exit = Exit(self.dimension, x=x, y=y)
         self.maze[x][y] = self.exit
 
     def solve_maze(self):

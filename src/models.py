@@ -30,7 +30,15 @@ class BoarderTile(BaseTile):
     def _validate_coordinates(self):
         if 0 not in (self.x, self.y) and self.dimension - 1 not in (self.x, self.y):
             raise TileException(f"Invalid Coordinates for {self.x, self.y}")
-#
+
+
+class Entrance(BoarderTile):
+    pass
+
+
+class Exit(BoarderTile):
+    pass
+
 
 class CorrectPathTile(BaseTile):
     pass
