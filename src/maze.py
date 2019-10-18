@@ -50,16 +50,16 @@ class MazeGenerator:
 
     def _init_entrance(self) -> None:
         """ initialise the entrace at any point on the boarder """
-        remains = self._get_remaining_border_tiles()
+        remains = self._get_remaining_base_border_tiles()
         chosen_tile = random.choice(remains)
         self.entrance = Entrance(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
-        self._replace_title(chosen_tile, self.entrance)
+        self._replace_tile(chosen_tile, self.entrance)
 
     def _init_exit(self):
-        remains = self._get_remaining_border_tiles(excluding_neighbors=[self.entrance])
+        remains = self._get_remaining_base_border_tiles(excluding_neighbors=[self.entrance])
         chosen_tile = random.choice(remains)
         self.exit = Exit(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
-        self._replace_title(chosen_tile, self.exit)
+        self._replace_tile(chosen_tile, self.exit)
 
     def _init_branches(self):
         pass
@@ -71,8 +71,8 @@ class MazeGenerator:
         pass
 
     def _init_boarder(self):
-        for base_tile in self._get_remaining_border_tiles():
-            self._replace_title(base_tile, BoarderTile(base_tile.x, base_tile.y, self.dimension))
+        for base_tile in self._get_remaining_base_border_tiles():
+            self._replace_tile(base_tile, BoarderTile(self.dimension, base_tile.x, base_tile.y))
 
     def _init_wall(self):
         """
@@ -84,7 +84,7 @@ class MazeGenerator:
 
     # -- helpers --
 
-    def _get_remaining_tiles(self):
+    def _get_remaining_base_tiles(self):
         """
         Compute remaining tiles as a list of tuples
         """
@@ -92,12 +92,14 @@ class MazeGenerator:
 
         for i in range(self.dimension):
             for j in range(self.dimension):
-                if isinstance(self.maze[i][j], BaseTile):
-                    result.append((i, j))
+                if not _check_tile_type(self.maze[i][j], 'BaseTile'):
+                    continue
+
+                result.append(BaseTile(i, j))
 
         return result
 
-    def _get_remaining_border_tiles(self, excluding_neighbors: List = None):
+    def _get_remaining_base_border_tiles(self, excluding_neighbors: List = None):
         """
         Compute remaining tiles as a list of tuples
         """
@@ -105,7 +107,7 @@ class MazeGenerator:
 
         for i in range(self.dimension):
             for j in range(self.dimension):
-                if not isinstance(self.maze[i][j], BaseTile):
+                if not _check_tile_type(self.maze[i][j], 'BaseTile'):
                     continue
 
                 if 0 not in (i, j) and self.dimension - 1 not in (i, j):
@@ -125,7 +127,7 @@ class MazeGenerator:
 
         return result
 
-    def _get_walkable_neightbors(self, current_tile: Any) -> List:
+    def _get_walkable_neighbors(self, current_tile: Any) -> List:
         # I am doing this stupid logic again ...
         all_dir = [
             self.maze[current_tile.x + 1][current_tile.y],
@@ -140,7 +142,7 @@ class MazeGenerator:
 
         return result
 
-    def _replace_title(self, this: Any, other: Any):
+    def _replace_tile(self, this: Any, other: Any):
         self.maze[this.x][this.y] = other
 
 
@@ -187,3 +189,12 @@ def is_neighbor(this: Any, other: Any) -> bool:
 
     return False
 
+
+def _check_tile_type(this, type_of_tile) -> bool:
+    """
+    Check tile against a string tile type
+    """
+    if this.__class__.__name__ == type_of_tile:
+        return True
+
+    return False
