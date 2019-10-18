@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 def viz_maze(maze: List[List[Any]]) -> None:
-    print(np.matrix(maze))
+    for row in maze:
+        print("   ".join([str(item) for item in row]) + "\n")
 
 
 class TileException(Exception):

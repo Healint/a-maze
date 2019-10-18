@@ -14,6 +14,9 @@ class BaseTile:
     def __repr__(self):
         return f"{self.__class__.__name__}"
 
+    def __str__(self):
+        return f"{self.__class__.__name__[:5]}"
+
     def _validate_coordinates(self):
         """ indepedent validation of coordinates """
         return

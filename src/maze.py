@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class MazeGenerator:
 
-    def __init__(self, dimension: int = 5):
+    def __init__(self, dimension: int = 10):
         self.dimension = dimension
         self.maze = None
         self.entrance = None
@@ -24,16 +24,16 @@ class MazeGenerator:
         self.maze = self._init_empty_maze()
         self._init_entrance()
         self._init_exit()
+        self._init_boarder()
 
         viz_maze(self.maze)
-        self._init_boarder()
+
         self._init_branches()
         self._init_traps()
         self._init_treasures()
         self._init_wall()
 
         # visualise maze
-        viz_maze(self.maze)
 
         logger.warning("Maze generated. ")
 
