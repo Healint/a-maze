@@ -11,10 +11,8 @@ class BaseTile:
         self.x = x
         self.y = y
 
-        self._validate_coordinates()  # validate the coordinates
-
     def __repr__(self):
-        return f"{self.__class__.__name__}: {self.x}, {self.y}"
+        return f"{self.__class__.__name__}"
 
     def _validate_coordinates(self):
         """ indepedent validation of coordinates """
@@ -26,6 +24,7 @@ class BoarderTile(BaseTile):
     def __init__(self, dimension, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.dimension = dimension
+        self._validate_coordinates()
 
     def _validate_coordinates(self):
         if 0 not in (self.x, self.y) and self.dimension - 1 not in (self.x, self.y):

@@ -51,7 +51,7 @@ class MazeGenerator:
     def _init_exit(self):
         remains = self._get_remaining_border_tiles(excluding_neighbors=[self.entrance])
         x, y = random.choice(remains)
-        self.exit = Exit(self.dimension, x=x, y=y)
+        self.exit = Exit(dimension=self.dimension, x=x, y=y)
         self.maze[x][y] = self.exit
 
     def solve_maze(self):
@@ -91,33 +91,12 @@ class MazeGenerator:
             final_result = []
             for tile in result:
                 for exclusion in excluding_neighbors:
-                    if not self.is_neighbor(BaseTile(tile[0], tile[1]), exclusion):
+                    if not is_neighbor(BaseTile(tile[0], tile[1]), exclusion):
                         final_result.append(tile)
 
             result = final_result
 
-        print(self.entrance)
-        print(result)
-
         return result
-
-    @staticmethod
-    def is_neighbor(this: Any, other: Any) -> bool:
-        if this is other:
-            raise Exception("Not allowed to check neighbor for the same object")
-
-        # Too lazy to google or think of algo
-        neighbours_tiles_coor = [
-            (this.x + 1, this.y),
-            (this.x - 1, this.y),
-            (this.x, this.y + 1),
-            (this.x, this.y - 1)
-        ]
-
-        if (other.x, other.y) in neighbours_tiles_coor:
-            return True
-
-        return False
 
 
 def generate_correct_path():
@@ -130,4 +109,22 @@ def generate_branches_from_coordinates(x, y, length: int):
 
 def is_reachable(x, y):
     pass
+
+
+def is_neighbor(this: Any, other: Any) -> bool:
+    if this is other:
+        raise Exception("Not allowed to check neighbor for the same object")
+
+    # Too lazy to google or think of algo
+    neighbours_tiles_coor = [
+        (this.x + 1, this.y),
+        (this.x - 1, this.y),
+        (this.x, this.y + 1),
+        (this.x, this.y - 1)
+    ]
+
+    if (other.x, other.y) in neighbours_tiles_coor:
+        return True
+
+    return False
 
