@@ -1,6 +1,6 @@
 import click
 
-from src.maze import initialise_maze
+from src.maze import MazeGenerator
 
 
 @click.group()
@@ -10,7 +10,7 @@ def cli():
 
 @cli.command()
 def init_maze():
-    initialise_maze()
+    MazeGenerator().initialise_maze()
 
 
 if __name__ == '__main__':

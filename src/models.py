@@ -1,3 +1,8 @@
+from src.helpers import TileException
+
+# Should add singleton mixin for entrance and exit
+
+
 class BaseTile:
     """
     A base class for the maze
@@ -6,19 +11,26 @@ class BaseTile:
         self.x = x
         self.y = y
 
+        self._validate_coordinates()  # validate the coordinates
+
     def __repr__(self):
-        return self.__class__.__name__
+        return f"{self.__class__.__name__}: {self.x}, {self.y}"
+
+    def _validate_coordinates(self):
+        """ indepedent validation of coordinates """
+        return
 
 
-class Entrance(BaseTile):
-    """The entrance of the maze"""
-    pass
+class BoarderTile(BaseTile):
 
+    def __init__(self, dimension, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dimension = dimension
 
-class Exit(BaseTile):
-    """The exit tile of the maze"""
-    pass
-
+    def _validate_coordinates(self):
+        if 0 not in (self.x, self.y) and self.dimension - 1 not in (self.x, self.y):
+            raise TileException(f"Invalid Coordinates for {self.x, self.y}")
+#
 
 class CorrectPathTile(BaseTile):
     pass

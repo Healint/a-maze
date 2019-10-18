@@ -10,3 +10,7 @@ logger = logging.getLogger(__name__)
 
 def viz_maze(maze: List[List[Any]]) -> None:
     print(np.matrix(maze))
+
+
+class TileException(Exception):
+    pass
