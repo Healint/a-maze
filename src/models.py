@@ -15,7 +15,7 @@ class BaseTile:
         return f"{self.__class__.__name__} - {self.x},{self.y}"
 
     def __str__(self):
-        return f"{self.__class__.__name__} - {self.x},{self.y}"
+        return f"{self.__class__.__name__}"
 
     def _validate_coordinates(self):
         """ independent validation of coordinates """

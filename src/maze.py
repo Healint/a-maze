@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class MazeGenerator:
 
-    def __init__(self, dimension: int = 5):
+    def __init__(self, dimension: int = 10):
         self.dimension = dimension
         self.maze = None
         self.entrance = None
@@ -52,13 +52,23 @@ class MazeGenerator:
     def _init_entrance(self) -> None:
         """ initialise the entrace at any point on the boarder """
         remains = self._get_remaining_base_border_tiles()
+
         chosen_tile = random.choice(remains)
+
+        # avoid corner respawn
+        while chosen_tile.x == chosen_tile.y:
+            chosen_tile = random.choice(remains)
+
         self.entrance = Entrance(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
         self._replace_tile(chosen_tile, self.entrance)
 
     def _init_exit(self):
         remains = self._get_remaining_base_border_tiles(excluding_neighbors=[self.entrance])
         chosen_tile = random.choice(remains)
+
+        while chosen_tile.x == chosen_tile.y:
+            chosen_tile = random.choice(remains)
+
         self.exit = Exit(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
         self._replace_tile(chosen_tile, self.exit)
 
@@ -177,39 +187,64 @@ class MazeGenerator:
             logger.warning("End tile provided, destined to reach the end. ")
             avoiding_wall = True
 
-        walked_tile = []
+        walked_path = []
 
         current_tile = start
         previous_tile = None
         turn_counter = 0
         while True:
-            walked_tile.append(current_tile)
-            self._replace_tile(current_tile, SolutionPath(current_tile.x, current_tile.y))
+            walked_path.append(current_tile)
+
+            if previous_tile is not None:  # not replacing the Entrance
+                self._replace_tile(current_tile, Path(current_tile.x, current_tile.y))
 
             logger.warning(f"Walking at {current_tile}")
 
-            if current_tile is end:
+            # random
+            next_steps = self._get_walkable_neighbors(current_tile)
+
+            if end in next_steps:
                 logger.warning("Random Walk reach destination. ")
                 break
 
-            # random
-            next_steps = self._get_walkable_neighbors(current_tile, previous_tile)
-            feasible_next_steps = [tile for tile in next_steps if not self._is_dead_end(tile)]
+            # generate path not neighbouring each other
+            feasible_next_steps = [tile for tile in next_steps if not is_touching_path(tile, current_tile, walked_path)]
 
-            previous_tile = current_tile  # assign as prev
-            current_tile = random.choice(feasible_next_steps)  # as new as current
+            # exclude dead ends to generate correct path
+            feasible_next_steps = [tile for tile in feasible_next_steps if not self._is_dead_end(tile)]
 
-            if current_tile in walked_tile:
-                logger.warning("Entered a loop")
-                break
-
-            # paint
+            if len(feasible_next_steps) == 0:
+                # turning back
+                current_tile = random.choice(walked_path)
+            else:
+                # walked
+                current_tile = random.choice(feasible_next_steps)  # as new as current
+                previous_tile = current_tile  # assign as prev
 
     def _is_dead_end(self, this: Any) -> bool:
         """
         test whether the given walking tile is next to boarder
         """
         return len(self._get_walkable_neighbors(this)) == 1
+
+
+def is_touching_path(this: Any, prev: Any, path: List) -> bool:
+    """
+    test whether the given walking tile is touching a list of tiles
+    except its prev path
+    """
+    for item in path:
+
+        if item is prev:
+            continue
+
+        if item is this:  # crossed path before
+            continue
+
+        if is_neighbor(this, item):
+            return True
+
+    return False
 
 
 def is_reachable(this: Any, other: Any, maze: List[List[Any]]) -> None:
