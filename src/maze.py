@@ -14,7 +14,7 @@ AVAILABLE_MOVE = [1, -1]
 
 class MazeGenerator:
 
-    def __init__(self, dimension: int = 10):
+    def __init__(self, dimension: int = 5):
         self.dimension = dimension
         self.maze = None
         self.entrance = None
@@ -141,32 +141,16 @@ class MazeGenerator:
     def _get_walkable_neighbors(self, current_tile: Any, previous_step: Any = None) -> List:
         # I am doing this stupid logic again ...
         result = []
+        print(f"Current tile: {(current_tile.x, current_tile.y)}")
+        for x in [current_tile.x - 1, current_tile.x, current_tile.x + 1]:
+            for y in [current_tile.y - 1, current_tile.y, current_tile.y + 1]:
+                if -1 < x < self.dimension and -1 < y < self.dimension:
+                    if not (current_tile.x == x and current_tile.y == y):
+                        if not (current_tile.x != x and current_tile.y != y):
+                            print(x, y)
+                            result.append(self.maze[x][y])
 
-        try:
-            right = self.maze[current_tile.x + 1][current_tile.y]
-            result.append(right)
-        except IndexError:
-            pass
-
-        try:
-            left = self.maze[current_tile.x - 1][current_tile.y]
-            result.append(left)
-        except IndexError:
-            pass
-
-        try:
-            down = self.maze[current_tile.x][current_tile.y - 1]
-            result.append(down)
-        except IndexError:
-            pass
-
-        try:
-            up = self.maze[current_tile.x][current_tile.y + 1]
-            result.append(up)
-        except IndexError:
-            pass
-
-        # check boarder tile
+        # remove blocks such as boarder tile and wall
         result = [item for item in result if not _check_tile_type(item, BoarderTile)]
 
         return result
