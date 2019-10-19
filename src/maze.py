@@ -27,13 +27,15 @@ class MazeGenerator:
         self._init_exit()
         self._init_boarder()
         self._init_correct()
+        self._init_branches(50)
 
         viz_maze(self.maze)
+
         exit()
-        self._init_branches()
+        self._init_wall()
+
         self._init_traps()
         self._init_treasures()
-        self._init_wall()
 
         # visualise maze
 
@@ -51,7 +53,7 @@ class MazeGenerator:
         ]
 
     def _init_entrance(self) -> None:
-        """ initialise the entrace at any point on the boarder """
+        """ initialise the entrance at any point on the boarder """
         remains = self._get_remaining_base_border_tiles()
 
         chosen_tile = random.choice(remains)
@@ -80,11 +82,13 @@ class MazeGenerator:
             paint=Path,
         )
 
-    def _init_branches(self):
-        self._random_walk_painting(
-            start=random.choice(self.walked_path),  # picked from any walked path
-            paint=Path,
-        )
+    def _init_branches(self, n: int):
+        for i in range(n):
+            logger.warning("Creating a new branch ...")
+            self._random_walk_painting(
+                start=random.choice(self.walked_path),  # picked from any walked path
+                paint=Path,
+            )
 
     def _init_traps(self):
         pass
@@ -204,24 +208,35 @@ class MazeGenerator:
                 # random
                 next_steps = self._get_walkable_neighbors(current_tile)
 
-                if end in next_steps:
-                    logger.warning(f"Random Walk reach destination. Exit at {end}")
+                if self.exit in next_steps:
+                    logger.warning(f"Random Walk reach exit. ")
+                    break
 
+                if avoiding_wall and end in next_steps:
+                    logger.warning(f"Random Walk reach destination. Exit at {end}")
                     break
 
                 # generate path not neighbouring each other
-                feasible_next_steps = [tile for tile in next_steps if not is_touching_path(tile, current_tile, current_walked_path)]
+                existing_path = current_walked_path + self.walked_path
+                feasible_next_steps = [tile for tile in next_steps if not is_touching_path(tile, current_tile, existing_path)]
 
                 # exclude dead ends to generate correct path
-                feasible_next_steps = [tile for tile in feasible_next_steps if not self._is_dead_end(tile)]
+                if avoiding_wall:
+                    # remove dead ends if searching for end
+                    feasible_next_steps = [tile for tile in feasible_next_steps if not self._is_dead_end(tile)]
 
                 if len(feasible_next_steps) == 0:
-                    # turning back
-                    current_tile = random.choice(current_walked_path)
-                    logger.warning(f"Go back to previous path {current_tile}")
-                    previous_tile_index = current_walked_path.index(current_tile)
-                    previous_tile = current_walked_path[previous_tile_index - 1]
-                    per_loop_counter += 1
+
+                    if avoiding_wall:
+                        # turning back as searching for end
+                        current_tile = random.choice(current_walked_path)
+                        logger.warning(f"Go back to previous path {current_tile}")
+                        previous_tile_index = current_walked_path.index(current_tile)
+                        previous_tile = current_walked_path[previous_tile_index - 1]
+                        per_loop_counter += 1
+                    else:
+                        logger.warning("Reaching a dead end. ")
+                        break
                 else:
                     # walked
                     current_tile = random.choice(feasible_next_steps)  # as new as current
@@ -229,9 +244,13 @@ class MazeGenerator:
 
             if per_loop_counter < 10:
                 logger.warning("Maze Path generated")
+
                 self.walked_path.extend(current_walked_path)
+
                 for tile in self.walked_path:
-                    self._replace_tile(tile, paint(tile.x, tile.y))
+
+                    if tile is not self.entrance or tile is not self.exit:
+                        self._replace_tile(tile, paint(tile.x, tile.y))
                 break
             else:
                 logger.warning("Retry to generate a path")
