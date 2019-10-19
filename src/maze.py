@@ -30,15 +30,16 @@ class MazeGenerator:
         self._init_branches(50)
         self._paint_walked_path()
         self._init_wall()
+        self._init_traps(
+            n=2,
+            trap_type=FireBridge
+        )
+        self._init_traps(
+            n=2,
+            trap_type=DynamicSpike
+        )
 
         viz_maze(self.maze)
-
-        exit()
-
-        self._init_traps()
-        self._init_treasures()
-
-        # visualise maze
 
         logger.warning("Maze generated. ")
 
@@ -89,8 +90,13 @@ class MazeGenerator:
                 start=random.choice(self.walked_path)  # picked from any walked path
             )
 
-    def _init_traps(self, fire: int, spike: int):
-        pass
+    def _init_traps(self, n: int, trap_type: Any):
+        paths = self._get_tiles("Path")
+
+        for i in range(n):
+            trap_tile = random.choice(paths)
+            paths.remove(trap_tile)
+            self._replace_tile(trap_tile, trap_type(trap_tile.x, trap_tile.y))
 
     def _init_treasures(self):
         pass
@@ -108,7 +114,7 @@ class MazeGenerator:
         including the boarders
         :return:
         """
-        for remain in self._get_remaining_base_tiles():
+        for remain in self._get_tiles('BaseTile'):
             self._replace_tile(remain, Wall(remain.x, remain.y))
 
     # -- helpers --
@@ -119,7 +125,7 @@ class MazeGenerator:
             if tile is not self.entrance or tile is not self.exit:
                 self._replace_tile(tile, Path(tile.x, tile.y))
 
-    def _get_remaining_base_tiles(self):
+    def _get_tiles(self, tile_type: str):
         """
         Compute remaining tiles as a list of tuples
         """
@@ -127,7 +133,7 @@ class MazeGenerator:
 
         for i in range(self.dimension):
             for j in range(self.dimension):
-                if not _check_tile_type(self.maze[i][j], 'BaseTile'):
+                if not _check_tile_type(self.maze[i][j], tile_type):
                     continue
 
                 result.append(BaseTile(i, j))
