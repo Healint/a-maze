@@ -89,7 +89,7 @@ class MazeGenerator:
                 start=random.choice(self.walked_path)  # picked from any walked path
             )
 
-    def _init_traps(self):
+    def _init_traps(self, fire: int, spike: int):
         pass
 
     def _init_treasures(self):
