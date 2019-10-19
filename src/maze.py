@@ -77,7 +77,7 @@ class MazeGenerator:
             start=self.entrance,
             end=self.exit,
             paint=SolutionPath,
-            walk_before_turn=2
+            walk_before_turn=2  # not in use
         )
 
     def _init_branches(self):
@@ -92,7 +92,7 @@ class MazeGenerator:
     def _init_boarder(self):
         self.boarder_tiles = []
         for base_tile in self._get_remaining_base_border_tiles():
-            replacing_tile = BoarderTile(self.dimension, base_tile.x, base_tile.y)
+            replacing_tile = Boarder(self.dimension, base_tile.x, base_tile.y)
             self._replace_tile(base_tile, replacing_tile)
             self.boarder_tiles.append(replacing_tile)
 
@@ -161,7 +161,7 @@ class MazeGenerator:
                             result.append(self.maze[x][y])
 
         # remove blocks such as boarder tile and wall
-        result = [item for item in result if not _check_tile_type(item, "BoarderTile")]
+        result = [item for item in result if not _check_tile_type(item, "Boarder")]
 
         if previous_step is not None:
             result.remove(previous_step)
@@ -198,11 +198,9 @@ class MazeGenerator:
             if previous_tile is not None:  # not replacing the Entrance
                 self._replace_tile(current_tile, Path(current_tile.x, current_tile.y))
 
-            logger.warning(f"Walking at {current_tile}")
-
             # random
             next_steps = self._get_walkable_neighbors(current_tile)
-
+            print(next_steps)
             if end in next_steps:
                 logger.warning("Random Walk reach destination. ")
                 break

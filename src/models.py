@@ -25,7 +25,7 @@ class BaseTile:
         return self.x == other.x and self.y == other.y
 
 
-class BoarderTile(BaseTile):
+class Boarder(BaseTile):
 
     def __init__(self, dimension, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,11 +37,11 @@ class BoarderTile(BaseTile):
             raise TileException(f"Invalid Coordinates for {self.x, self.y}")
 
 
-class Entrance(BoarderTile):
+class Entrance(Boarder):
     pass
 
 
-class Exit(BoarderTile):
+class Exit(Boarder):
     pass
 
 
