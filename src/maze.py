@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class MazeGenerator:
 
-    def __init__(self, dimension: int = 10):
+    def __init__(self, dimension: int = 15):
         self.dimension = dimension
         self.maze = None
         self.entrance = None
@@ -28,11 +28,12 @@ class MazeGenerator:
         self._init_boarder()
         self._init_correct()
         self._init_branches(50)
+        self._paint_walked_path()
+        self._init_wall()
 
         viz_maze(self.maze)
 
         exit()
-        self._init_wall()
 
         self._init_traps()
         self._init_treasures()
@@ -78,16 +79,14 @@ class MazeGenerator:
     def _init_correct(self):
         self._random_walk_painting(
             start=self.entrance,
-            end=self.exit,
-            paint=Path,
+            end=self.exit
         )
 
     def _init_branches(self, n: int):
         for i in range(n):
             logger.warning("Creating a new branch ...")
             self._random_walk_painting(
-                start=random.choice(self.walked_path),  # picked from any walked path
-                paint=Path,
+                start=random.choice(self.walked_path)  # picked from any walked path
             )
 
     def _init_traps(self):
@@ -109,9 +108,16 @@ class MazeGenerator:
         including the boarders
         :return:
         """
-        pass
+        for remain in self._get_remaining_base_tiles():
+            self._replace_tile(remain, Wall(remain.x, remain.y))
 
     # -- helpers --
+
+    def _paint_walked_path(self):
+        print(self.entrance)
+        for tile in self.walked_path:
+            if tile is not self.entrance or tile is not self.exit:
+                self._replace_tile(tile, Path(tile.x, tile.y))
 
     def _get_remaining_base_tiles(self):
         """
@@ -178,7 +184,7 @@ class MazeGenerator:
     def _replace_tile(self, this: Any, other: Any):
         self.maze[this.x][this.y] = other
 
-    def _random_walk_painting(self, start, paint: Any, end=None, walk_before_turn: int = 2):
+    def _random_walk_painting(self, start, end=None, walk_before_turn: int = 2):
         """
         Recursively paint the path with a type of tile
 
@@ -198,11 +204,11 @@ class MazeGenerator:
             per_loop_counter = 0
             current_tile = start
             current_walked_path = []
-            previous_tile = None
-            while per_loop_counter <= 10:
-                logger.warning(f"Walked at - {current_tile}")
 
-                if current_tile is not start:
+            while per_loop_counter <= 10:
+                logger.debug(f"Walked at - {current_tile}")
+
+                if current_tile is not self.entrance:
                     current_walked_path.append(current_tile)
 
                 # random
@@ -231,8 +237,6 @@ class MazeGenerator:
                         # turning back as searching for end
                         current_tile = random.choice(current_walked_path)
                         logger.warning(f"Go back to previous path {current_tile}")
-                        previous_tile_index = current_walked_path.index(current_tile)
-                        previous_tile = current_walked_path[previous_tile_index - 1]
                         per_loop_counter += 1
                     else:
                         logger.warning("Reaching a dead end. ")
@@ -240,17 +244,12 @@ class MazeGenerator:
                 else:
                     # walked
                     current_tile = random.choice(feasible_next_steps)  # as new as current
-                    previous_tile = current_tile  # assign as prev
 
             if per_loop_counter < 10:
                 logger.warning("Maze Path generated")
 
                 self.walked_path.extend(current_walked_path)
 
-                for tile in self.walked_path:
-
-                    if tile is not self.entrance or tile is not self.exit:
-                        self._replace_tile(tile, paint(tile.x, tile.y))
                 break
             else:
                 logger.warning("Retry to generate a path")
