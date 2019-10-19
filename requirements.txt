@@ -1,3 +1,4 @@
+bumpversion
 click
 numpy
 pre-commit
