@@ -8,9 +8,6 @@ from src.helpers import viz_maze
 
 logger = logging.getLogger(__name__)
 
-AVAILABLE_DIRECTION = ['x', 'y']
-AVAILABLE_MOVE = [1, -1]
-
 
 class MazeGenerator:
 
@@ -28,14 +25,10 @@ class MazeGenerator:
         self._init_entrance()
         self._init_exit()
         self._init_boarder()
-        self._random_walk_painting(
-            start=self.entrance,
-            end=self.exit,
-            paint=SolutionPath,
-            walk_before_turn=2
-        )
-        viz_maze(self.maze)
+        self._init_correct()
 
+        viz_maze(self.maze)
+        exit()
         self._init_branches()
         self._init_traps()
         self._init_treasures()
@@ -51,7 +44,7 @@ class MazeGenerator:
         """ initialised a square maze with BaseTiles """
         return [
             [
-                BaseTile(i, j) for i in range(self.dimension)
+                BaseTile(j, i) for i in range(self.dimension)
             ]
             for j in range(self.dimension)
         ]
@@ -70,7 +63,12 @@ class MazeGenerator:
         self._replace_tile(chosen_tile, self.exit)
 
     def _init_correct(self):
-        pass
+        self._random_walk_painting(
+            start=self.entrance,
+            end=self.exit,
+            paint=SolutionPath,
+            walk_before_turn=2
+        )
 
     def _init_branches(self):
         pass
@@ -82,8 +80,11 @@ class MazeGenerator:
         pass
 
     def _init_boarder(self):
+        self.boarder_tiles = []
         for base_tile in self._get_remaining_base_border_tiles():
-            self._replace_tile(base_tile, BoarderTile(self.dimension, base_tile.x, base_tile.y))
+            replacing_tile = BoarderTile(self.dimension, base_tile.x, base_tile.y)
+            self._replace_tile(base_tile, replacing_tile)
+            self.boarder_tiles.append(replacing_tile)
 
     def _init_wall(self):
         """
@@ -139,47 +140,26 @@ class MazeGenerator:
         return result
 
     def _get_walkable_neighbors(self, current_tile: Any, previous_step: Any = None) -> List:
+        # should be tested
         # I am doing this stupid logic again ...
         result = []
-        print(f"Current tile: {(current_tile.x, current_tile.y)}")
         for x in [current_tile.x - 1, current_tile.x, current_tile.x + 1]:
             for y in [current_tile.y - 1, current_tile.y, current_tile.y + 1]:
                 if -1 < x < self.dimension and -1 < y < self.dimension:
-                    if not (current_tile.x == x and current_tile.y == y):
-                        if not (current_tile.x != x and current_tile.y != y):
-                            print(x, y)
+                    if not (current_tile.x == x and current_tile.y == y):  # not the original point
+                        if not (current_tile.x != x and current_tile.y != y):  # not moving at the same time
                             result.append(self.maze[x][y])
 
         # remove blocks such as boarder tile and wall
-        result = [item for item in result if not _check_tile_type(item, BoarderTile)]
+        result = [item for item in result if not _check_tile_type(item, "BoarderTile")]
+
+        if previous_step is not None:
+            result.remove(previous_step)
 
         return result
 
     def _replace_tile(self, this: Any, other: Any):
         self.maze[this.x][this.y] = other
-
-    # def _random_walk_a_tile(self, current_tile: Any, previous_tile: Any = None) -> Any:
-    #     """
-    #     given an existing current tile, walk to another one
-    #     allowed a previous step to be excluded so no turning back
-    #     """
-    #     # compute forbidden step
-    #     if previous_tile:
-    #         x_move = current_tile.x - previous_tile.x
-    #         y_move = current_tile.y - previous_tile.y
-    #
-    #         if x_move != 0:
-    #             forbidden_direction = 'x'
-    #             forbidden_step = - x_move  # forbid going back by assign negative sign
-    #         else:
-    #             forbidden_direction = 'y'
-    #             forbidden_step = - y_move
-    #
-    #     direction = random.choice(AVAILABLE_DIRECTION)
-    #     step = random.choice()
-    #
-    #     if direction == 'x':
-    #         next_tile = self.maze[current_tile.x]
 
     def _random_walk_painting(self, start, paint: Any, end=None, walk_before_turn: int = 2):
         """
@@ -197,20 +177,39 @@ class MazeGenerator:
             logger.warning("End tile provided, destined to reach the end. ")
             avoiding_wall = True
 
+        walked_tile = []
+
         current_tile = start
+        previous_tile = None
         turn_counter = 0
         while True:
+            walked_tile.append(current_tile)
+            self._replace_tile(current_tile, SolutionPath(current_tile.x, current_tile.y))
+
+            logger.warning(f"Walking at {current_tile}")
 
             if current_tile is end:
                 logger.warning("Random Walk reach destination. ")
                 break
 
             # random
+            next_steps = self._get_walkable_neighbors(current_tile, previous_tile)
+            feasible_next_steps = [tile for tile in next_steps if not self._is_dead_end(tile)]
 
-            next_steps = self._get_walkable_neighbors(current_tile)
+            previous_tile = current_tile  # assign as prev
+            current_tile = random.choice(feasible_next_steps)  # as new as current
 
-            print(next_steps)
-            break
+            if current_tile in walked_tile:
+                logger.warning("Entered a loop")
+                break
+
+            # paint
+
+    def _is_dead_end(self, this: Any) -> bool:
+        """
+        test whether the given walking tile is next to boarder
+        """
+        return len(self._get_walkable_neighbors(this)) == 1
 
 
 def is_reachable(this: Any, other: Any, maze: List[List[Any]]) -> None:

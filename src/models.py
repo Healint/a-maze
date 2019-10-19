@@ -18,8 +18,11 @@ class BaseTile:
         return f"{self.__class__.__name__} - {self.x},{self.y}"
 
     def _validate_coordinates(self):
-        """ indepedent validation of coordinates """
+        """ independent validation of coordinates """
         return
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
 
 
 class BoarderTile(BaseTile):
