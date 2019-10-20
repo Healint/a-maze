@@ -7,6 +7,7 @@ class BaseTile:
     """
     A base class for the maze
     """
+
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
@@ -15,7 +16,7 @@ class BaseTile:
         return f"{self.__class__.__name__} - {self.x},{self.y}"
 
     def __str__(self):
-        return f"{self.__class__.__name__}"[:3]
+        return f"{self.__class__.__name__}"[:3] + f"{self.x},{self.y}"
 
     def _validate_coordinates(self):
         """ independent validation of coordinates """
@@ -26,7 +27,6 @@ class BaseTile:
 
 
 class Boarder(BaseTile):
-
     def __init__(self, dimension, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.dimension = dimension
@@ -42,6 +42,10 @@ class Entrance(Boarder):
 
 
 class Exit(Boarder):
+    pass
+
+
+class BonusExit(BaseTile):
     pass
 
 
@@ -79,4 +83,3 @@ class Treasure(BaseTile):
 
 class Armor(Treasure):
     pass
-

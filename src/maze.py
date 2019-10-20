@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class MazeGenerator:
-
-    def __init__(self, dimension: int = 15):
+    def __init__(self, dimension: int = 10):
         self.dimension = dimension
         self.maze = None
+        self.object_maze = None
         self.entrance = None
         self.exit = None
         self.walked_path = []
@@ -22,37 +22,39 @@ class MazeGenerator:
         logger.warning("Initialise a maze ...")
 
         # initialise basic maze
-        self.maze = self._init_empty_maze()
+        self.maze = self._init_base_maze()
+        self.object_maze = self._init_empty_maze()
         self._init_entrance()
         self._init_exit()
-        self._init_boarder()
         self._init_correct()
         self._init_branches(50)
         self._paint_walked_path()
         self._init_wall()
-        self._init_traps(
-            n=2,
-            trap_type=FireBridge
-        )
-        self._init_traps(
-            n=2,
-            trap_type=DynamicSpike
-        )
+
+        # traps and stuff for object layer
+        self._adding_on_path(n=2, trap_type=FireBridge)
+        self._adding_on_path(n=2, trap_type=DynamicSpike)
+        self._adding_on_wall(n=2, tile_type=StaticSpike)
+        self._init_bonus_exit()
 
         viz_maze(self.maze)
+
+        viz_maze(self.object_maze)
 
         logger.warning("Maze generated. ")
 
     # -- init methods --
 
-    def _init_empty_maze(self) -> List[List[BaseTile]]:
+    def _init_base_maze(self) -> List[List[BaseTile]]:
         """ initialised a square maze with BaseTiles """
         return [
-            [
-                BaseTile(j, i) for i in range(self.dimension)
-            ]
+            [BaseTile(j, i) for i in range(self.dimension)]
             for j in range(self.dimension)
         ]
+
+    def _init_empty_maze(self) -> List[List]:
+        """ initialised a square maze with BaseTiles """
+        return [[None for i in range(self.dimension)] for j in range(self.dimension)]
 
     def _init_entrance(self) -> None:
         """ initialise the entrance at any point on the boarder """
@@ -61,27 +63,38 @@ class MazeGenerator:
         chosen_tile = random.choice(remains)
 
         # avoid corner respawn
-        while abs(chosen_tile.x - chosen_tile.y) == 0 or abs(chosen_tile.x - chosen_tile.y) == self.dimension - 1:
+        while (
+            abs(chosen_tile.x - chosen_tile.y) == 0
+            or abs(chosen_tile.x - chosen_tile.y) == self.dimension - 1
+        ):
             chosen_tile = random.choice(remains)
 
         self.entrance = Entrance(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
         self._replace_tile(chosen_tile, self.entrance)
 
     def _init_exit(self):
-        remains = self._get_remaining_base_border_tiles(excluding_neighbors=[self.entrance])
+        remains = self._get_remaining_base_border_tiles(
+            excluding_neighbors=[self.entrance]
+        )
         chosen_tile = random.choice(remains)
 
-        while abs(chosen_tile.x - chosen_tile.y) == 0 or abs(chosen_tile.x - chosen_tile.y) == self.dimension - 1:
+        while (
+            abs(chosen_tile.x - chosen_tile.y) == 0
+            or abs(chosen_tile.x - chosen_tile.y) == self.dimension - 1
+        ):
             chosen_tile = random.choice(remains)
 
         self.exit = Exit(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
         self._replace_tile(chosen_tile, self.exit)
 
-    def _init_correct(self):
-        self._random_walk_painting(
-            start=self.entrance,
-            end=self.exit
+    def _init_bonus_exit(self):
+        replacing_tile = random.choice(self.walked_path)
+        self._replace_tile(
+            replacing_tile, BonusExit(replacing_tile.x, replacing_tile.y)
         )
+
+    def _init_correct(self):
+        self._random_walk_painting(start=self.entrance, end=self.exit)
 
     def _init_branches(self, n: int):
         for i in range(n):
@@ -90,13 +103,24 @@ class MazeGenerator:
                 start=random.choice(self.walked_path)  # picked from any walked path
             )
 
-    def _init_traps(self, n: int, trap_type: Any):
+    def _adding_on_path(self, n: int, trap_type: Any):
         paths = self._get_tiles("Path")
-
         for i in range(n):
             trap_tile = random.choice(paths)
             paths.remove(trap_tile)
-            self._replace_tile(trap_tile, trap_type(trap_tile.x, trap_tile.y))
+            self._replace_tile_object_maze(
+                trap_tile, trap_type(trap_tile.x, trap_tile.y)
+            )
+
+    def _adding_on_wall(self, n: int, tile_type: Any):
+        paths = self._get_tiles("Wall")
+
+        for i in range(n):
+            replacing_tile = random.choice(paths)
+            paths.remove(replacing_tile)
+            self._replace_tile_object_maze(
+                replacing_tile, tile_type(replacing_tile.x, replacing_tile.y)
+            )
 
     def _init_treasures(self):
         pass
@@ -114,13 +138,12 @@ class MazeGenerator:
         including the boarders
         :return:
         """
-        for remain in self._get_tiles('BaseTile'):
+        for remain in self._get_tiles("BaseTile"):
             self._replace_tile(remain, Wall(remain.x, remain.y))
 
     # -- helpers --
 
     def _paint_walked_path(self):
-        print(self.entrance)
         for tile in self.walked_path:
             if tile is not self.entrance or tile is not self.exit:
                 self._replace_tile(tile, Path(tile.x, tile.y))
@@ -136,7 +159,7 @@ class MazeGenerator:
                 if not _check_tile_type(self.maze[i][j], tile_type):
                     continue
 
-                result.append(BaseTile(i, j))
+                result.append(eval(tile_type)(i, j))
 
         return result
 
@@ -148,7 +171,7 @@ class MazeGenerator:
 
         for i in range(self.dimension):
             for j in range(self.dimension):
-                if not _check_tile_type(self.maze[i][j], 'BaseTile'):
+                if not _check_tile_type(self.maze[i][j], "BaseTile"):
                     continue
 
                 if 0 not in (i, j) and self.dimension - 1 not in (i, j):
@@ -168,15 +191,21 @@ class MazeGenerator:
 
         return result
 
-    def _get_walkable_neighbors(self, current_tile: Any, previous_step: Any = None) -> List:
+    def _get_walkable_neighbors(
+        self, current_tile: Any, previous_step: Any = None
+    ) -> List:
         # should be tested
         # I am doing this stupid logic again ...
         result = []
         for x in [current_tile.x - 1, current_tile.x, current_tile.x + 1]:
             for y in [current_tile.y - 1, current_tile.y, current_tile.y + 1]:
                 if -1 < x < self.dimension and -1 < y < self.dimension:
-                    if not (current_tile.x == x and current_tile.y == y):  # not the original point
-                        if not (current_tile.x != x and current_tile.y != y):  # not moving at the same time
+                    if not (
+                        current_tile.x == x and current_tile.y == y
+                    ):  # not the original point
+                        if not (
+                            current_tile.x != x and current_tile.y != y
+                        ):  # not moving at the same time
                             result.append(self.maze[x][y])
 
         # remove blocks such as boarder tile and wall
@@ -189,6 +218,9 @@ class MazeGenerator:
 
     def _replace_tile(self, this: Any, other: Any):
         self.maze[this.x][this.y] = other
+
+    def _replace_tile_object_maze(self, this: Any, other: Any):
+        self.object_maze[this.x][this.y] = other
 
     def _random_walk_painting(self, start, end=None, walk_before_turn: int = 2):
         """
@@ -230,12 +262,20 @@ class MazeGenerator:
 
                 # generate path not neighbouring each other
                 existing_path = current_walked_path + self.walked_path
-                feasible_next_steps = [tile for tile in next_steps if not is_touching_path(tile, current_tile, existing_path)]
+                feasible_next_steps = [
+                    tile
+                    for tile in next_steps
+                    if not is_touching_path(tile, current_tile, existing_path)
+                ]
 
                 # exclude dead ends to generate correct path
                 if avoiding_wall:
                     # remove dead ends if searching for end
-                    feasible_next_steps = [tile for tile in feasible_next_steps if not self._is_dead_end(tile)]
+                    feasible_next_steps = [
+                        tile
+                        for tile in feasible_next_steps
+                        if not self._is_dead_end(tile)
+                    ]
 
                 if len(feasible_next_steps) == 0:
 
@@ -249,7 +289,9 @@ class MazeGenerator:
                         break
                 else:
                     # walked
-                    current_tile = random.choice(feasible_next_steps)  # as new as current
+                    current_tile = random.choice(
+                        feasible_next_steps
+                    )  # as new as current
 
             if per_loop_counter < 10:
                 logger.warning("Maze Path generated")
@@ -303,7 +345,7 @@ def is_neighbor(this: Any, other: Any) -> bool:
         (this.x + 1, this.y),
         (this.x - 1, this.y),
         (this.x, this.y + 1),
-        (this.x, this.y - 1)
+        (this.x, this.y - 1),
     ]
 
     if (other.x, other.y) in neighbours_tiles_coor:

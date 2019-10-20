@@ -1,4 +1,6 @@
 bumpversion
 click
+falcon
+gunicorn
 numpy
 pre-commit
