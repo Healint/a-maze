@@ -10,8 +10,10 @@ def cli():
 
 @cli.command()
 def init_maze():
-    MazeGenerator().initialise_maze()
+    MazeGenerator(
+        dimension=10, traps={"FireBridge": 2, "DynamicSpike": 2, "StaticSpike": 2}
+    ).initialise_maze()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

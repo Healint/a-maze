@@ -1,7 +1,11 @@
+import json
+
 import falcon
 
+from src.maze import MazeGenerator
 from src import PROJECT_DESCRIPTION, PROJECT_NAME, PROJECT_AUTHOR
 from src.__version__ import VERSION
+from src.helpers import serialise_maze
 
 
 class HealthcheckResource:
@@ -18,7 +22,19 @@ class HealthcheckResource:
 
 class MazeGenerationResource:
     def on_post(self, req, resp):
-        resp.media = {"message": "successfully generated maze"}
+
+        # parse req
+        maze = MazeGenerator(
+            dimension=10, traps={"FireBridge": 2, "DynamicSpike": 2, "StaticSpike": 2}
+        )
+        maze.initialise_maze()
+        base_maze = maze.maze
+        object_maze = maze.object_maze
+
+        resp.media = {
+            "base_maze": serialise_maze(base_maze),
+            "object_maze": serialise_maze(object_maze),
+        }
 
 
 api = falcon.API()

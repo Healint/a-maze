@@ -10,13 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 class MazeGenerator:
-    def __init__(self, dimension: int = 10):
+    def __init__(self, traps: dict, dimension: int):
         self.dimension = dimension
+        self.traps = traps
         self.maze = None
         self.object_maze = None
         self.entrance = None
         self.exit = None
         self.walked_path = []
+        self.complexity = self.dimension * 5  # complexity of branches
 
     def initialise_maze(self):
         logger.warning("Initialise a maze ...")
@@ -27,19 +29,15 @@ class MazeGenerator:
         self._init_entrance()
         self._init_exit()
         self._init_correct()
-        self._init_branches(50)
+        self._init_branches(self.complexity)
         self._paint_walked_path()
         self._init_wall()
 
         # traps and stuff for object layer
-        self._adding_on_path(n=2, trap_type=FireBridge)
-        self._adding_on_path(n=2, trap_type=DynamicSpike)
-        self._adding_on_wall(n=2, tile_type=StaticSpike)
+        self._adding_on_path(n=self.traps["FireBridge"], trap_type=FireBridge)
+        self._adding_on_path(n=self.traps["DynamicSpike"], trap_type=DynamicSpike)
+        self._adding_on_wall(n=self.traps["StaticSpike"], tile_type=StaticSpike)
         self._init_bonus_exit()
-
-        viz_maze(self.maze)
-
-        viz_maze(self.object_maze)
 
         logger.warning("Maze generated. ")
 

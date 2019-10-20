@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+import json
 
 from typing import List, Any
 
@@ -16,3 +17,10 @@ def viz_maze(maze: List[List[Any]]) -> None:
 
 class TileException(Exception):
     pass
+
+
+def serialise_maze(maze: List[List[Any]]):
+    for i in range(len(maze)):
+        for j in range(len(maze)):
+            maze[i][j] = maze[i][j].__class__.__name__
+    return maze
