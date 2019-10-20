@@ -1,11 +1,12 @@
-import json
-
+import logging
 import falcon
 
 from src.maze import MazeGenerator
 from src import PROJECT_DESCRIPTION, PROJECT_NAME, PROJECT_AUTHOR
 from src.__version__ import VERSION
 from src.helpers import serialise_maze
+
+logger = logging.getLogger(__name__)
 
 
 class HealthcheckResource:
@@ -24,10 +25,24 @@ class MazeGenerationResource:
     def on_post(self, req, resp):
 
         # parse req
-        maze = MazeGenerator(
-            dimension=10, traps={"FireBridge": 2, "DynamicSpike": 2, "StaticSpike": 2}
-        )
+        raw_json = req.media
+        try:
+            req_dimension = raw_json["dimension"]
+        except KeyError:
+            raise falcon.HTTPBadRequest(
+                "You need to provide an integer as maze dimension. "
+            )
+
+        try:
+            req_traps = raw_json["traps"]
+        except KeyError:
+            logger.warning("No traps config past to the generator, taking the default")
+            req_traps = {"FireBridge": 2, "DynamicSpike": 2, "StaticSpike": 2}
+
+        maze = MazeGenerator(dimension=req_dimension, traps=req_traps)
+
         maze.initialise_maze()
+
         base_maze = maze.maze
         object_maze = maze.object_maze
 
