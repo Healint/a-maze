@@ -52,7 +52,7 @@ class MazeGenerationResource:
             "base_maze": serialise_maze(base_maze),
             "object_maze": serialise_maze(object_maze),
             "user_position_x": maze.entrance.y,
-            "user_position_y": req_dimension - maze.entrance.y
+            "user_position_y": req_dimension - 1  - maze.entrance.y
         }
 
 
