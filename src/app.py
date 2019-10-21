@@ -51,8 +51,8 @@ class MazeGenerationResource:
         resp.media = {
             "base_maze": serialise_maze(base_maze),
             "object_maze": serialise_maze(object_maze),
-            "user_position_x": maze.entrance.x,
-            "user_position_y": maze.entrance.y
+            "user_position_x": maze.entrance.y,
+            "user_position_y": req_dimension - maze.entrance.y
         }
 
 
