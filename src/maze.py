@@ -39,6 +39,9 @@ class MazeGenerator:
         self._adding_on_wall(n=self.traps["StaticSpike"], tile_type=StaticSpike)
         self._init_bonus_exit()
 
+        viz_maze(self.maze)
+        viz_maze(self.object_maze)
+
         logger.warning("Maze generated. ")
 
     # -- init methods --
@@ -96,7 +99,6 @@ class MazeGenerator:
 
     def _init_branches(self, n: int):
         for i in range(n):
-            logger.warning("Creating a new branch ...")
             self._random_walk_painting(
                 start=random.choice(self.walked_path)  # picked from any walked path
             )
@@ -119,6 +121,7 @@ class MazeGenerator:
             self._replace_tile_object_maze(
                 replacing_tile, tile_type(replacing_tile.x, replacing_tile.y)
             )
+            self._replace_tile(replacing_tile, None)
 
     def _init_treasures(self):
         pass
@@ -242,7 +245,6 @@ class MazeGenerator:
             current_walked_path = []
 
             while per_loop_counter <= 10:
-                logger.debug(f"Walked at - {current_tile}")
 
                 if current_tile is not self.entrance:
                     current_walked_path.append(current_tile)
@@ -280,7 +282,6 @@ class MazeGenerator:
                     if avoiding_wall:
                         # turning back as searching for end
                         current_tile = random.choice(current_walked_path)
-                        logger.warning(f"Go back to previous path {current_tile}")
                         per_loop_counter += 1
                     else:
                         logger.warning("Reaching a dead end. ")
