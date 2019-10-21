@@ -1,6 +1,8 @@
 import logging
 import falcon
 
+from falcon_cors import CORS
+
 from src.maze import MazeGenerator
 from src import PROJECT_DESCRIPTION, PROJECT_NAME, PROJECT_AUTHOR
 from src.__version__ import VERSION
@@ -52,7 +54,14 @@ class MazeGenerationResource:
         }
 
 
-api = falcon.API()
+cors = CORS(
+    allow_all_headers=True,
+    allow_all_methods=True,
+    allow_origins_list=True
+)
+cors_middleware = cors.middleware
+
+api = falcon.API(middleware=[cors_middleware])
 
 api.add_route("/", HealthcheckResource())
 api.add_route("/generate", MazeGenerationResource())
