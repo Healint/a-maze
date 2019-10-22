@@ -85,6 +85,11 @@ class MazeGenerator:
         ):
             chosen_tile = random.choice(remains)
 
+            # ensure exit is half a map away from the entrance
+            if abs(chosen_tile.x - self.entrance.x) < self.dimension / 2 \
+                    or abs(chosen_tile.y - self.entrance.y) < self.dimension / 2:
+                continue
+
         self.exit = Exit(self.dimension, x=chosen_tile.x, y=chosen_tile.y)
         self._replace_tile(chosen_tile, self.exit)
 
