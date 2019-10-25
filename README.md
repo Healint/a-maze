@@ -1,6 +1,8 @@
 # a-maze
 A project for the engineering challenge in Healint.
 
+Team Mate: Yikun & Yingdan
+
 This document is outdated, I will find a time to polish a thing or
 two when I have time.
 
